@@ -42,7 +42,7 @@ function load_mailbox(mailbox) {
       // Display the email
       email.forEach(newEmail => {
         const newEmails = document.createElement('div');
-        newEmails.className = 'list-group-item d-flex justify-content-between align-items-center'
+        newEmails.className = 'list-group-item d-flex justify-content-between align-items-center mb-2'
         newEmails.innerHTML = `
         <h6>${newEmail.sender}</h6>
         <h6>${newEmail.subject}</h6>
@@ -50,10 +50,8 @@ function load_mailbox(mailbox) {
 
         // Change background color
         if (newEmail.read) {
-          newEmails.className = 'list-group-item-danger'
+          newEmails.classList.add('list-group-item-secondary')
         }
-
-        console.log(newEmails)
 
         newEmails.addEventListener('click', function() {
             console.log('This element has been clicked!')
