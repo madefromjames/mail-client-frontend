@@ -17,6 +17,7 @@ function compose_email() {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#view_email').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -30,6 +31,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#view_email').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -39,25 +41,52 @@ function load_mailbox(mailbox) {
   .then(response => response.json())
   .then(email => {
 
-      // Display the email
-      email.forEach(newEmail => {
-        const newEmails = document.createElement('div');
-        newEmails.className = 'list-group-item d-flex justify-content-between align-items-center mb-2'
-        newEmails.innerHTML = `
-        <h6>${newEmail.sender}</h6>
-        <h6>${newEmail.subject}</h6>
-        <p class="text-muted">${newEmail.timestamp}</p>`;
+    // Display the email
+    email.forEach(newEmail => {
+      const newEmails = document.createElement('div');
+      newEmails.className = 'list-group-item d-flex justify-content-between align-items-center mb-2'
+      newEmails.innerHTML = `
+      <h6>${newEmail.sender}</h6>
+      <h6>${newEmail.subject}</h6>
+      <p class="text-muted">${newEmail.timestamp}</p>`;
 
-        // Change background color
-        if (newEmail.read) {
-          newEmails.classList.add('list-group-item-secondary')
-        }
+      // Change background color
+      if (newEmail.read) {
+        newEmails.classList.add('list-group-item-secondary')
+      };
 
-        newEmails.addEventListener('click', function() {
-            console.log('This element has been clicked!')
-        });
-        document.querySelector('#emails-view').append(newEmails);
-      })
+      newEmails.addEventListener('click', () => view_email(newEmail.id));
+      document.querySelector('#emails-view').append(newEmails);
+    })
+  });
+}
+
+function view_email(id) {
+  fetch(`/emails/${id}`)
+  .then(response => response.json())
+  .then(email => {
+      console.log(email);
+
+      // Show the clicked email and hide other views
+      document.querySelector('#emails-view').style.display = 'none';
+      document.querySelector('#compose-view').style.display = 'none';
+      document.querySelector('#view_email').style.display = 'block';
+
+      document.querySelector('#view_email').innerHTML = `
+      <p class="mb-0"><strong>From:</strong> ${email.sender}</p>
+      <p class="mb-0"><strong>To:</strong> ${email.recipients}</p>
+      <p class="mb-0"><strong>Subject:</strong> ${email.subject}</p>
+      <p class="mb-0"><strong>Timesatamp:</strong> ${email.timestamp}</p>
+      <hr>
+      <p>${email.body}</p>
+      `;
+
+      fetch(`/emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            read: true
+        })
+      });
   });
 }
 
