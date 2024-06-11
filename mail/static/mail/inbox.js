@@ -83,6 +83,7 @@ function view_email(id, mailbox) {
       <p class="mb-0"><strong>Subject:</strong> ${email.subject}</p>
       <p class="mb-0"><strong>Timesatamp:</strong> ${email.timestamp}</p>
       ${archiveButtonHTML}
+      <button class="btn btn-sm" id="reply">Reply</button>
       <hr>
       <p>${email.body}</p>
       `;
@@ -97,8 +98,8 @@ function view_email(id, mailbox) {
       if (mailbox !== 'sent') {
         const archiveButton = document.querySelector('#archive');
 
-        archiveButton.innerHTML = email.archived ? 'Unarchive' : 'Archive'
-        archiveButton.classList.add(email.archived ? 'btn-outline-success' : 'btn-outline-danger')
+        archiveButton.innerHTML = email.archived ? 'Unarchive' : 'Archive';
+        archiveButton.classList.add(email.archived ? 'btn-outline-success' : 'btn-outline-danger');
 
         archiveButton.addEventListener('click', () => {
           fetch(`/emails/${id}`, {
