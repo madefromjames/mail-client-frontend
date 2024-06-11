@@ -61,7 +61,7 @@ function load_mailbox(mailbox) {
       newEmails.addEventListener('click', () => view_email(newEmail.id, mailbox));
       document.querySelector('#emails-view').append(newEmails);
     })
-  }).catch(error => console.error('Error loading mailbox:', error));
+  });
 }
 
 // Function to view a specific email
@@ -99,7 +99,7 @@ function view_email(id, mailbox) {
         body: JSON.stringify({
             read: true
         })
-      }).catch(error => console.error('Error marking email as read:', error));
+      });
 
       // Add functionality to archive button
       if (mailbox !== 'sent') {
@@ -119,7 +119,6 @@ function view_email(id, mailbox) {
           .then(() => {
             load_mailbox('inbox')
           })
-          .catch(error => console.error('Error archiving email:', error));
         });
       };
 
@@ -134,8 +133,8 @@ function view_email(id, mailbox) {
         // Form submit handler
         document.querySelector('#compose-form').addEventListener('submit', send_email)
       });
-  })
-  .catch(error => console.error('Error viewing email:', error));
+
+  });
 }
 
 // Function to send an email
@@ -160,6 +159,5 @@ function send_email(event) {
   .then(result => {
     console.log(result);
     load_mailbox('sent');
-  })
-  .catch(error => console.error('Error sending email:', error));;
+  });
 }
