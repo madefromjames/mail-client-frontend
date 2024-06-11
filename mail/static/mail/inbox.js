@@ -55,13 +55,13 @@ function load_mailbox(mailbox) {
         newEmails.classList.add('list-group-item-secondary')
       };
 
-      newEmails.addEventListener('click', () => view_email(newEmail.id));
+      newEmails.addEventListener('click', () => view_email(newEmail.id, mailbox));
       document.querySelector('#emails-view').append(newEmails);
     })
   });
 }
 
-function view_email(id) {
+function view_email(id, mailbox) {
   fetch(`/emails/${id}`)
   .then(response => response.json())
   .then(email => {
@@ -72,11 +72,17 @@ function view_email(id) {
       document.querySelector('#compose-view').style.display = 'none';
       document.querySelector('#view_email').style.display = 'block';
 
+      let archiveButtonHTML = '';
+      if (mailbox !== 'sent') {
+        archiveButtonHTML = `<button class="btn btn-sm" id="archive"></button>`
+      };
+
       document.querySelector('#view_email').innerHTML = `
       <p class="mb-0"><strong>From:</strong> ${email.sender}</p>
       <p class="mb-0"><strong>To:</strong> ${email.recipients}</p>
       <p class="mb-0"><strong>Subject:</strong> ${email.subject}</p>
       <p class="mb-0"><strong>Timesatamp:</strong> ${email.timestamp}</p>
+      ${archiveButtonHTML}
       <hr>
       <p>${email.body}</p>
       `;
@@ -87,6 +93,26 @@ function view_email(id) {
             read: true
         })
       });
+
+      if (mailbox !== 'sent') {
+        const archiveButton = document.querySelector('#archive');
+
+        archiveButton.innerHTML = email.archived ? 'Unarchive' : 'Archive'
+        archiveButton.classList.add(email.archived ? 'btn-outline-success' : 'btn-outline-danger')
+
+        archiveButton.addEventListener('click', () => {
+          fetch(`/emails/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                archived: !email.archived
+            })
+          })
+          .then(() => {
+            load_mailbox('inbox')
+          })
+        });
+      };
+
   });
 }
 
