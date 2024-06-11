@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
+// Function to show the compose email view
 function compose_email() {
 
   // Show compose view and hide other views
@@ -26,6 +27,7 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
+// Function to load the specified mailbox
 function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
@@ -36,7 +38,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-  // Get mailbox from user
+  // Get emails for the specified mailbox
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(email => {
@@ -50,44 +52,48 @@ function load_mailbox(mailbox) {
       <h6>${newEmail.subject}</h6>
       <p class="text-muted">${newEmail.timestamp}</p>`;
 
-      // Change background color
+      // Change background color if email is read
       if (newEmail.read) {
         newEmails.classList.add('list-group-item-secondary')
       };
 
+      // Add click event to view email
       newEmails.addEventListener('click', () => view_email(newEmail.id, mailbox));
       document.querySelector('#emails-view').append(newEmails);
     })
   });
 }
 
+// Function to view a specific email
 function view_email(id, mailbox) {
   fetch(`/emails/${id}`)
   .then(response => response.json())
   .then(email => {
-      console.log(email);
 
       // Show the clicked email and hide other views
       document.querySelector('#emails-view').style.display = 'none';
       document.querySelector('#compose-view').style.display = 'none';
       document.querySelector('#view_email').style.display = 'block';
 
+      // Hide archive button HTML from sent mailbox
       let archiveButtonHTML = '';
       if (mailbox !== 'sent') {
         archiveButtonHTML = `<button class="btn btn-sm" id="archive"></button>`
       };
 
+      // Display the email details
       document.querySelector('#view_email').innerHTML = `
       <p class="mb-0"><strong>From:</strong> ${email.sender}</p>
       <p class="mb-0"><strong>To:</strong> ${email.recipients}</p>
       <p class="mb-0"><strong>Subject:</strong> ${email.subject}</p>
       <p class="mb-0"><strong>Timesatamp:</strong> ${email.timestamp}</p>
       ${archiveButtonHTML}
-      <button class="btn btn-sm" id="reply">Reply</button>
+      <button class="btn btn-sm btn-outline-primary" id="reply">Reply</button>
       <hr>
       <p>${email.body}</p>
       `;
 
+      // Mark email as read
       fetch(`/emails/${email.id}`, {
         method: 'PUT',
         body: JSON.stringify({
@@ -95,12 +101,14 @@ function view_email(id, mailbox) {
         })
       });
 
+      // Add functionality to archive button
       if (mailbox !== 'sent') {
         const archiveButton = document.querySelector('#archive');
 
         archiveButton.innerHTML = email.archived ? 'Unarchive' : 'Archive';
         archiveButton.classList.add(email.archived ? 'btn-outline-success' : 'btn-outline-danger');
 
+        // Archive/unarchive the email on button click
         archiveButton.addEventListener('click', () => {
           fetch(`/emails/${id}`, {
             method: 'PUT',
@@ -114,17 +122,32 @@ function view_email(id, mailbox) {
         });
       };
 
+      // Add functionality to reply button
+      document.querySelector('#reply').addEventListener('click', () => {
+        console.log('replied')
+        compose_email()
+
+        document.querySelector('#compose-recipients').value = email.sender;
+        document.querySelector('#compose-subject').value = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`;
+        document.querySelector('#compose-body').value = `"On ${email.timestamp}, ${email.sender} wrote: ${email.body}"\n\n`;
+
+        // Form submit handler
+        document.querySelector('#compose-form').addEventListener('submit', send_email)
+      });
+
   });
 }
 
-// Send email to a receipent
+// Function to send an email
 function send_email(event) {
   event.preventDefault();
 
+  // Get form values
   const recipients = document.querySelector('#compose-recipients').value;
   const subject = document.querySelector('#compose-subject').value;
   const body = document.querySelector('#compose-body').value;
 
+  // Send email via POST request
   fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
